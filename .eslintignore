@@ -1,0 +1,5 @@
+.env
+.github
+coverage
+node_modules
+prisma

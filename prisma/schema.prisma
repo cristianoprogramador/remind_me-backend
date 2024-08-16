@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  uuid        String    @id @default(uuid()) @db.Uuid
+  name        String    @db.VarChar(255)
+  email       String    @unique @db.VarChar(255)
+  password    String    @db.Text()
+  phoneNumber String?   @db.VarChar(20)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  annotations        Annotation[]   @relation("UserAnnotations")
+  relatedAnnotations Annotation[]   @relation("RelatedUserAnnotations")
+  notifications      Notification[]
+  Category           Category[]
+}
+
+model Annotation {
+  uuid      String   @id @default(uuid()) @db.Uuid
+  content   String   @db.Text()
+  remindAt  DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  authorId String @db.Uuid
+  author   User   @relation("UserAnnotations", fields: [authorId], references: [uuid])
+
+  categoryId String   @db.Uuid
+  category   Category @relation(fields: [categoryId], references: [uuid])
+
+  relatedUserId String? @db.Uuid
+  relatedUser   User?   @relation("RelatedUserAnnotations", fields: [relatedUserId], references: [uuid])
+}
+
+model Category {
+  uuid        String       @id @default(uuid()) @db.Uuid
+  name        String       @db.VarChar(255)
+  userId      String       @db.Uuid
+  user        User         @relation(fields: [userId], references: [uuid])
+  annotations Annotation[]
+}
+
+model Notification {
+  uuid        String   @id @default(uuid()) @db.Uuid
+  emailNotify Boolean  @default(true)
+  phoneNotify Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [uuid])
+}
