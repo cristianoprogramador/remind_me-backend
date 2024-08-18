@@ -32,7 +32,9 @@ export class AuthService {
     }
 
     // Criptografa a senha
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = password
+      ? await bcrypt.hash(password, 10)
+      : await bcrypt.hash("default-oauth-password", 10);
 
     // Cria o usuário
     return this.prisma.user.create({
