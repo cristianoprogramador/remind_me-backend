@@ -47,17 +47,32 @@ export class FriendshipController {
     return this.friendshipService.getFriendRequests(user.userId);
   }
 
+  @Get("friends")
+  @ApiOperation({ summary: "Listar amigos" })
+  async getFriends(@GetUser() user: { userId: string }) {
+    return this.friendshipService.getFriends(user.userId);
+  }
+
+  @Get("search")
+  @ApiOperation({ summary: "Buscar usuário por e-mail" })
+  async searchUser(
+    @Query("email") email: string,
+    @GetUser() user: { userId: string }
+  ) {
+    return this.friendshipService.searchUserByEmail(email, user.userId);
+  }
+
   @Post("respond/:requestId")
   @ApiOperation({ summary: "Responder a uma solicitação de amizade" })
   async respondToFriendRequest(
-    @GetUser() user: { userId: string },
     @Param("requestId") requestId: string,
-    @Query("accept") accept: boolean
+    @Body("accept") accept: boolean,
+    @GetUser() user: { userId: string }
   ) {
     return this.friendshipService.respondToFriendRequest(
-      user.userId,
       requestId,
-      accept
+      accept,
+      user.userId
     );
   }
 }

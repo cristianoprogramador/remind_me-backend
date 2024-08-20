@@ -51,7 +51,8 @@ export class FriendshipService {
       throw new BadRequestException("Invalid UUID");
     }
 
-    return this.prisma.friendship.findMany({
+    // Solicitações recebidas
+    const receivedRequests = await this.prisma.friendship.findMany({
       where: {
         user2Id: userId,
         status: FriendshipStatus.PENDING,
@@ -60,27 +61,123 @@ export class FriendshipService {
         user1: true,
       },
     });
+
+    // Solicitações enviadas
+    const sentRequests = await this.prisma.friendship.findMany({
+      where: {
+        user1Id: userId,
+        status: FriendshipStatus.PENDING,
+      },
+      include: {
+        user2: true,
+      },
+    });
+
+    return {
+      receivedRequests,
+      sentRequests,
+    };
   }
 
   async respondToFriendRequest(
-    userId: string,
     requestId: string,
-    accept: boolean
+    accept: boolean,
+    userId: string
   ) {
-    const friendship = await this.prisma.friendship.findUnique({
-      where: { uuid: requestId },
-      include: { user2: true },
-    });
-
-    if (!friendship || friendship.user2Id !== userId) {
-      throw new NotFoundException("Pedido de amizade não encontrado.");
+    if (!isUUID(requestId)) {
+      throw new BadRequestException("Invalid request ID");
     }
 
-    return this.prisma.friendship.update({
-      where: { uuid: requestId },
-      data: {
-        status: accept ? FriendshipStatus.ACCEPTED : FriendshipStatus.REJECTED,
+    const friendship = await this.prisma.friendship.findUnique({
+      where: {
+        uuid: requestId,
       },
     });
+
+    if (!friendship) {
+      throw new BadRequestException("Friendship request not found");
+    }
+
+    if (friendship.user2Id !== userId) {
+      throw new BadRequestException("Unauthorized to respond to this request");
+    }
+
+    if (accept) {
+      await this.prisma.friendship.update({
+        where: {
+          uuid: requestId,
+        },
+        data: {
+          status: FriendshipStatus.ACCEPTED,
+          updatedAt: new Date(),
+        },
+      });
+    } else {
+      await this.prisma.friendship.update({
+        where: {
+          uuid: requestId,
+        },
+        data: {
+          status: FriendshipStatus.REJECTED,
+          updatedAt: new Date(),
+        },
+      });
+    }
+
+    return {
+      message: `Friendship request has been ${accept ? "accepted" : "rejected"}.`,
+    };
+  }
+
+  async getFriends(userId: string) {
+    if (!isUUID(userId)) {
+      throw new BadRequestException("Invalid UUID");
+    }
+
+    return this.prisma.friendship.findMany({
+      where: {
+        OR: [
+          {
+            user1Id: userId,
+            status: FriendshipStatus.ACCEPTED,
+          },
+          {
+            user2Id: userId,
+            status: FriendshipStatus.ACCEPTED,
+          },
+        ],
+      },
+      include: {
+        user1: true,
+        user2: true,
+      },
+    });
+  }
+
+  async searchUserByEmail(userEmail: string, requesterId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: userEmail },
+    });
+
+    if (!user) {
+      throw new NotFoundException("Usuário não encontrado");
+    }
+
+    const friendship = await this.prisma.friendship.findFirst({
+      where: {
+        OR: [
+          { user1Id: requesterId, user2Id: user.uuid },
+          { user1Id: user.uuid, user2Id: requesterId },
+        ],
+      },
+    });
+
+    return {
+      uuid: user.uuid,
+      name: user.name,
+      email: user.email,
+      profileImageUrl: user.profileImageUrl,
+      status: friendship ? friendship.status : null,
+    };
   }
 }
