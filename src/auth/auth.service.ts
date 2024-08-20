@@ -21,7 +21,7 @@ export class AuthService {
   }
 
   async register(createUserDto: CreateUserDto): Promise<User> {
-    const { email, password, name } = createUserDto;
+    const { email, password, name, image } = createUserDto;
 
     // Verifica se o usuário já existe
     const existingUser = await this.prisma.user.findUnique({
@@ -42,6 +42,7 @@ export class AuthService {
         email,
         password: hashedPassword,
         name,
+        profileImageUrl: image,
       },
     });
   }
@@ -53,7 +54,18 @@ export class AuthService {
     };
   }
 
-  async checkUser(email: string): Promise<User | null> {
-    return this.prisma.user.findUnique({ where: { email } });
+  async checkUser(email: string, image?: string): Promise<User | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (user && image && user.profileImageUrl !== image) {
+      await this.prisma.user.update({
+        where: { email },
+        data: { profileImageUrl: image },
+      });
+    }
+
+    return user;
   }
 }

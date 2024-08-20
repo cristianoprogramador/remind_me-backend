@@ -13,20 +13,43 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  BLOCKED
+}
+
 model User {
-  uuid        String    @id @default(uuid()) @db.Uuid
-  name        String    @db.VarChar(255)
-  email       String    @unique @db.VarChar(255)
-  password    String    @db.Text()
-  phoneNumber String?   @db.VarChar(20)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
+  uuid            String    @id @default(uuid()) @db.Uuid
+  name            String    @db.VarChar(255)
+  email           String    @unique @db.VarChar(255)
+  password        String    @db.Text()
+  profileImageUrl String?   @db.VarChar(255)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  friends1 Friendship[] @relation("User1Friendships")
+  friends2 Friendship[] @relation("User2Friendships")
 
   annotations        Annotation[]   @relation("UserAnnotations")
   relatedAnnotations Annotation[]   @relation("RelatedUserAnnotations")
   notifications      Notification[]
   Category           Category[]
+}
+
+model Friendship {
+  uuid    String @id @default(uuid()) @db.Uuid
+  user1Id String @db.Uuid
+  user1   User   @relation("User1Friendships", fields: [user1Id], references: [uuid])
+
+  user2Id String @db.Uuid
+  user2   User   @relation("User2Friendships", fields: [user2Id], references: [uuid])
+
+  status    FriendshipStatus @default(PENDING)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @default(now())
 }
 
 model Annotation {
@@ -57,6 +80,7 @@ model Category {
 model Notification {
   uuid        String   @id @default(uuid()) @db.Uuid
   emailNotify Boolean  @default(true)
+  phoneNumber String?  @db.VarChar(20)
   phoneNotify Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
