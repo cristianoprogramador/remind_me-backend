@@ -33,7 +33,18 @@ export class FriendshipService {
     });
 
     if (existingFriendship) {
-      throw new ConflictException("Uma amizade já existe ou está pendente.");
+      if (existingFriendship.status === FriendshipStatus.REJECTED) {
+        // Atualiza a solicitação rejeitada  para pendente novamente
+        return this.prisma.friendship.update({
+          where: { uuid: existingFriendship.uuid },
+          data: {
+            status: FriendshipStatus.PENDING,
+            updatedAt: new Date(),
+          },
+        });
+      } else {
+        throw new ConflictException("Uma amizade já existe ou está pendente.");
+      }
     }
 
     // Cria a relação de amizade com status "PENDING"

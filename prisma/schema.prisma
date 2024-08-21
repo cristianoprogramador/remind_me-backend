@@ -62,8 +62,8 @@ model Annotation {
   authorId String @db.Uuid
   author   User   @relation("UserAnnotations", fields: [authorId], references: [uuid])
 
-  categoryId String   @db.Uuid
-  category   Category @relation(fields: [categoryId], references: [uuid])
+  categoryId String?   @db.Uuid
+  category   Category? @relation(fields: [categoryId], references: [uuid])
 
   relatedUserId String? @db.Uuid
   relatedUser   User?   @relation("RelatedUserAnnotations", fields: [relatedUserId], references: [uuid])

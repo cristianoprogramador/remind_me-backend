@@ -14,7 +14,7 @@ export class AnnotationsService {
         content: createAnnotationDto.content,
         remindAt: createAnnotationDto.remindAt,
         authorId: authorId,
-        categoryId: createAnnotationDto.categoryId,
+        categoryId: createAnnotationDto.categoryId || null,
         relatedUserId: createAnnotationDto.relatedUserId,
       },
     });

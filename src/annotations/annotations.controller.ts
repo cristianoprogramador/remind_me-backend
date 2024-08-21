@@ -9,10 +9,11 @@ import {
 } from "@nestjs/swagger";
 import { CreateAnnotationDto } from "./dto/create-annotation.dto";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
+import { GetUser } from "src/auth/get-user.decorator";
 
 @ApiTags("Annotations")
-// @UseGuards(JwtAuthGuard)
-// @ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 @Controller("annotations")
 export class AnnotationsController {
   constructor(private readonly annotationsService: AnnotationsService) {}
@@ -20,10 +21,11 @@ export class AnnotationsController {
   @Post()
   @ApiOperation({ summary: "Create a new annotation" })
   @ApiResponse({ status: 201, description: "Annotation successfully created" })
-  async create(@Body() createAnnotationDto: CreateAnnotationDto) {
-    // Para simplificação, suponha que o authorId é obtido do token JWT decodificado
-    const authorId = "your-author-id-from-token"; // Substitua por lógica de extração de token JWT
-    return this.annotationsService.create(authorId, createAnnotationDto);
+  async create(
+    @GetUser() user: { userId: string },
+    @Body() createAnnotationDto: CreateAnnotationDto
+  ) {
+    return this.annotationsService.create(user.userId, createAnnotationDto);
   }
 
   @Get()

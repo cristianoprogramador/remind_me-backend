@@ -13,7 +13,8 @@ export class CreateAnnotationDto {
 
   @ApiProperty({ description: "Category ID", example: "UUID" })
   @IsUUID()
-  categoryId: string;
+  @IsOptional()
+  categoryId?: string;
 
   @ApiProperty({ description: "Related User ID", example: "UUID" })
   @IsUUID()

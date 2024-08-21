@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Get, Param, Query } from "@nestjs/common";
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
 import { FriendshipService } from "./friendship.service";
 import {
   ApiTags,
@@ -8,8 +16,10 @@ import {
   ApiBody,
 } from "@nestjs/swagger";
 import { GetUser } from "src/auth/get-user.decorator";
+import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
 
 @ApiTags("Friendship")
+@UseGuards(JwtAuthGuard)
 @Controller("friendship")
 @ApiBearerAuth()
 export class FriendshipController {
