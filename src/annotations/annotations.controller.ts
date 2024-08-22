@@ -1,5 +1,14 @@
 // src/annotations/annotations.controller.ts
-import { Controller, Get, Post, Body, Param, UseGuards } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  Query,
+  Patch,
+} from "@nestjs/common";
 import { AnnotationsService } from "./annotations.service";
 import {
   ApiTags,
@@ -26,6 +35,27 @@ export class AnnotationsController {
     @Body() createAnnotationDto: CreateAnnotationDto
   ) {
     return this.annotationsService.create(user.userId, createAnnotationDto);
+  }
+
+  @Patch(":id/remindAt")
+  @ApiOperation({ summary: "Update the remindAt of an annotation" })
+  @ApiResponse({ status: 200, description: "RemindAt updated successfully" })
+  async updateRemindAt(
+    @GetUser() user: { userId: string },
+    @Param("id") id: string,
+    @Body("remindAt") remindAt: Date
+  ) {
+    return this.annotationsService.updateRemindAt(user.userId, id, remindAt);
+  }
+
+  @Get("user")
+  @ApiOperation({ summary: "Get user annotations" })
+  @ApiResponse({ status: 200, description: "List of user annotations" })
+  async findUserAnnotations(
+    @GetUser() user: { userId: string },
+    @Query("onlyFuture") onlyFuture: boolean
+  ) {
+    return this.annotationsService.findUserAnnotations(user.userId, onlyFuture);
   }
 
   @Get()

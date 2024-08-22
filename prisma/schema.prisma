@@ -33,10 +33,13 @@ model User {
   friends1 Friendship[] @relation("User1Friendships")
   friends2 Friendship[] @relation("User2Friendships")
 
-  annotations        Annotation[]   @relation("UserAnnotations")
-  relatedAnnotations Annotation[]   @relation("RelatedUserAnnotations")
-  notifications      Notification[]
-  Category           Category[]
+  annotations        Annotation[]             @relation("UserAnnotations")
+  relatedAnnotations RelatedUserAnnotations[] @relation("UserToAnnotations")
+
+  notifications Notification[]
+  categories    Category[]
+
+  RelatedUserAnnotations RelatedUserAnnotations[]
 }
 
 model Friendship {
@@ -65,8 +68,7 @@ model Annotation {
   categoryId String?   @db.Uuid
   category   Category? @relation(fields: [categoryId], references: [uuid])
 
-  relatedUserId String? @db.Uuid
-  relatedUser   User?   @relation("RelatedUserAnnotations", fields: [relatedUserId], references: [uuid])
+  relatedUsers RelatedUserAnnotations[] @relation("AnnotationToUsers")
 }
 
 model Category {
@@ -87,4 +89,16 @@ model Notification {
 
   userId String @db.Uuid
   user   User   @relation(fields: [userId], references: [uuid])
+}
+
+model RelatedUserAnnotations {
+  annotationId String @db.Uuid
+  userId       String @db.Uuid
+
+  annotation Annotation @relation("AnnotationToUsers", fields: [annotationId], references: [uuid])
+  user       User       @relation("UserToAnnotations", fields: [userId], references: [uuid])
+  User       User?      @relation(fields: [userUuid], references: [uuid])
+  userUuid   String?    @db.Uuid
+
+  @@id([annotationId, userId])
 }
