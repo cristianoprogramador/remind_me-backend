@@ -7,6 +7,7 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateAnnotationDto } from "./dto/create-annotation.dto";
+import { UpdateAnnotationDto } from "./dto/update-annotation.dto";
 
 @Injectable()
 export class AnnotationsService {
@@ -24,6 +25,26 @@ export class AnnotationsService {
             user: {
               connect: { uuid: userId },
             },
+          })),
+        },
+      },
+    });
+  }
+
+  async update(annotationId: string, updateAnnotationDto: UpdateAnnotationDto) {
+    console.log(annotationId);
+    console.log(updateAnnotationDto);
+
+    return this.prisma.annotation.update({
+      where: { uuid: annotationId },
+      data: {
+        content: updateAnnotationDto.content,
+        remindAt: updateAnnotationDto.remindAt,
+        categoryId: updateAnnotationDto.categoryId || null,
+        relatedUsers: {
+          deleteMany: { annotationId },
+          create: updateAnnotationDto.relatedUsers?.map((user) => ({
+            userId: user.userId,
           })),
         },
       },

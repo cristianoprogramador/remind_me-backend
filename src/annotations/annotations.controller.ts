@@ -8,6 +8,7 @@ import {
   UseGuards,
   Query,
   Patch,
+  Put,
 } from "@nestjs/common";
 import { AnnotationsService } from "./annotations.service";
 import {
@@ -19,6 +20,7 @@ import {
 import { CreateAnnotationDto } from "./dto/create-annotation.dto";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
 import { GetUser } from "src/auth/get-user.decorator";
+import { UpdateAnnotationDto } from "./dto/update-annotation.dto";
 
 @ApiTags("Annotations")
 @UseGuards(JwtAuthGuard)
@@ -35,6 +37,16 @@ export class AnnotationsController {
     @Body() createAnnotationDto: CreateAnnotationDto
   ) {
     return this.annotationsService.create(user.userId, createAnnotationDto);
+  }
+
+  @Put(":id")
+  @ApiOperation({ summary: "Update an annotation" })
+  @ApiResponse({ status: 200, description: "Annotation updated" })
+  async update(
+    @Param("id") id: string,
+    @Body() updateAnnotationDto: UpdateAnnotationDto
+  ) {
+    return this.annotationsService.update(id, updateAnnotationDto);
   }
 
   @Patch(":id/remindAt")

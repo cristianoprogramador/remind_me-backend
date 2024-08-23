@@ -191,4 +191,31 @@ export class FriendshipService {
       status: friendship ? friendship.status : null,
     };
   }
+
+  async unfriend(userId: string, friendId: string) {
+    if (!isUUID(friendId)) {
+      throw new BadRequestException("Invalid UUID");
+    }
+
+    const friendship = await this.prisma.friendship.findFirst({
+      where: {
+        OR: [
+          { user1Id: userId, user2Id: friendId },
+          { user1Id: friendId, user2Id: userId },
+        ],
+        status: FriendshipStatus.ACCEPTED,
+      },
+    });
+
+    if (!friendship) {
+      throw new NotFoundException("Amizade não encontrada.");
+    }
+
+    // Remove a amizade da base de dados
+    await this.prisma.friendship.delete({
+      where: { uuid: friendship.uuid },
+    });
+
+    return { message: "Amizade desfeita com sucesso." };
+  }
 }

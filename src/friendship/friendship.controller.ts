@@ -6,6 +6,7 @@ import {
   Param,
   Query,
   UseGuards,
+  Delete,
 } from "@nestjs/common";
 import { FriendshipService } from "./friendship.service";
 import {
@@ -84,5 +85,16 @@ export class FriendshipController {
       accept,
       user.userId
     );
+  }
+
+  @Delete(":friendId")
+  @ApiOperation({ summary: "Desfazer amizade" })
+  @ApiResponse({ status: 200, description: "Amizade desfeita com sucesso." })
+  @ApiResponse({ status: 404, description: "Amizade não encontrada." })
+  async unfriend(
+    @GetUser() user: { userId: string },
+    @Param("friendId") friendId: string
+  ) {
+    return this.friendshipService.unfriend(user.userId, friendId);
   }
 }
