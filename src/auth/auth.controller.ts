@@ -39,7 +39,7 @@ export class AuthController {
   async checkUser(@Body("email") email: string) {
     const user = await this.authService.checkUser(email);
     if (user) {
-      return { id: user.uuid, email: user.email };
+      return { id: user.uuid, email: user.email, name: user.name };
     } else {
       return { id: null };
     }

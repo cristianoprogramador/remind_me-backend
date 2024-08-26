@@ -80,12 +80,14 @@ model Category {
 }
 
 model Notification {
-  uuid        String   @id @default(uuid()) @db.Uuid
-  emailNotify Boolean  @default(true)
-  phoneNumber String?  @db.VarChar(20)
-  phoneNotify Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  uuid          String   @id @default(uuid()) @db.Uuid
+  emailNotify   Boolean  @default(true)
+  phoneNumber   String?  @db.VarChar(20)
+  phoneNotify   Boolean  @default(false)
+  weeklySummary Boolean  @default(false)
+  enabled       Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   userId String @db.Uuid
   user   User   @relation(fields: [userId], references: [uuid])

@@ -47,11 +47,27 @@ export class AuthService {
     });
   }
 
+  async generateJwtToken(user: User) {
+    const payload = { username: user.email, sub: user.uuid, name: user.name };
+    return this.jwtService.sign(payload);
+  }
+
   async login(user: User) {
-    const payload = { username: user.email, sub: user.uuid };
+    // Gere um novo token JWT no login
+    const access_token = await this.generateJwtToken(user);
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token,
     };
+  }
+
+  async updateUserAndGenerateToken(userId: string, newName: string) {
+    const user = await this.prisma.user.update({
+      where: { uuid: userId },
+      data: { name: newName },
+    });
+
+    // Gere um novo token JWT após a atualização
+    return this.generateJwtToken(user);
   }
 
   async checkUser(email: string, image?: string): Promise<User | null> {
