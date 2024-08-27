@@ -8,6 +8,7 @@ import {
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateAnnotationDto } from "./dto/create-annotation.dto";
 import { UpdateAnnotationDto } from "./dto/update-annotation.dto";
+import { isUUID } from "class-validator";
 
 @Injectable()
 export class AnnotationsService {
@@ -28,13 +29,19 @@ export class AnnotationsService {
           })),
         },
       },
+      include: {
+        author: true,
+        category: true,
+        relatedUsers: {
+          include: {
+            user: true,
+          },
+        },
+      },
     });
   }
 
   async update(annotationId: string, updateAnnotationDto: UpdateAnnotationDto) {
-    console.log(annotationId);
-    console.log(updateAnnotationDto);
-
     return this.prisma.annotation.update({
       where: { uuid: annotationId },
       data: {
@@ -73,10 +80,17 @@ export class AnnotationsService {
     });
   }
 
-  async findUserAnnotations(userId: string, onlyFuture: boolean) {
+  async findUserAnnotations(
+    userId: string,
+    onlyFuture: boolean,
+    page: number,
+    limit: number
+  ) {
     const now = new Date();
+    const skip = (page - 1) * limit;
+    const take = limit;
 
-    return this.prisma.annotation.findMany({
+    const annotations = await this.prisma.annotation.findMany({
       where: {
         authorId: userId,
         ...(onlyFuture && {
@@ -97,7 +111,85 @@ export class AnnotationsService {
       orderBy: {
         remindAt: "asc",
       },
+      skip,
+      take,
     });
+
+    const totalCount = await this.prisma.annotation.count({
+      where: {
+        authorId: userId,
+        ...(onlyFuture && {
+          remindAt: {
+            gte: now,
+          },
+        }),
+      },
+    });
+
+    return {
+      annotations,
+      totalCount,
+      page,
+      limit,
+    };
+  }
+
+  async searchAnnotations(
+    userId: string,
+    query: string,
+    categoryId: string,
+    page: number,
+    limit: number
+  ) {
+    const skip = (page - 1) * limit;
+    const now = new Date();
+
+    const searchConditions: any = {
+      authorId: userId,
+      remindAt: {
+        gte: now,
+      },
+    };
+
+    if (query) {
+      searchConditions.content = {
+        contains: query,
+        mode: "insensitive",
+      };
+    }
+
+    if (categoryId && isUUID(categoryId)) {
+      searchConditions.categoryId = categoryId;
+    }
+
+    const annotations = await this.prisma.annotation.findMany({
+      where: searchConditions,
+      include: {
+        author: true,
+        category: true,
+        relatedUsers: {
+          include: {
+            user: true,
+          },
+        },
+      },
+      orderBy: {
+        remindAt: "asc",
+      },
+      skip,
+      take: limit,
+    });
+
+    const totalCount = await this.prisma.annotation.count({
+      where: searchConditions,
+    });
+
+    return {
+      annotations,
+      totalCount,
+      page,
+      limit,
+    };
   }
 
   async findAll() {

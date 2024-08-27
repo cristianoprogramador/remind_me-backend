@@ -65,9 +65,38 @@ export class AnnotationsController {
   @ApiResponse({ status: 200, description: "List of user annotations" })
   async findUserAnnotations(
     @GetUser() user: { userId: string },
-    @Query("onlyFuture") onlyFuture: boolean
+    @Query("onlyFuture") onlyFuture: boolean,
+    @Query("page") page: string = "1",
+    @Query("limit") limit: string = "10"
   ) {
-    return this.annotationsService.findUserAnnotations(user.userId, onlyFuture);
+    return this.annotationsService.findUserAnnotations(
+      user.userId,
+      onlyFuture,
+      parseInt(page),
+      parseInt(limit)
+    );
+  }
+
+  @Get("search")
+  @ApiOperation({ summary: "Search annotations by content or category" })
+  @ApiResponse({
+    status: 200,
+    description: "List of annotations based on search criteria",
+  })
+  async searchAnnotations(
+    @GetUser() user: { userId: string },
+    @Query("query") query: string = "",
+    @Query("categoryId") categoryId: string = "",
+    @Query("page") page: string = "1",
+    @Query("limit") limit: string = "10"
+  ) {
+    return this.annotationsService.searchAnnotations(
+      user.userId,
+      query,
+      categoryId,
+      parseInt(page),
+      parseInt(limit)
+    );
   }
 
   @Get()
