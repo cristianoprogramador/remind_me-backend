@@ -142,13 +142,9 @@ export class AnnotationsService {
     limit: number
   ) {
     const skip = (page - 1) * limit;
-    const now = new Date();
 
     const searchConditions: any = {
       authorId: userId,
-      remindAt: {
-        gte: now,
-      },
     };
 
     if (query) {
