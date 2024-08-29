@@ -4,8 +4,8 @@ import {
   Put,
   Body,
   UseGuards,
-  NotFoundException,
   Post,
+  InternalServerErrorException,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -30,19 +30,29 @@ export class NotificationController {
   @ApiOperation({ summary: "Obter configurações de notificação do usuário" })
   @ApiResponse({
     status: 200,
-    description: "Configurações de notificação obtidas com sucesso.",
-  })
-  @ApiResponse({
-    status: 404,
-    description: "Configurações de notificação não encontradas.",
+    description:
+      "Configurações de notificação obtidas com sucesso ou não encontradas.",
   })
   async getNotificationSettings(@GetUser() user: { userId: string }) {
     try {
-      return await this.notificationService.getNotificationSettings(
-        user.userId
-      );
+      const notificationSettings =
+        await this.notificationService.getNotificationSettings(user.userId);
+
+      if (!notificationSettings) {
+        return {
+          emailNotify: false,
+          phoneNotify: false,
+          phoneNumber: "",
+          weeklySummary: false,
+        };
+      }
+
+      return notificationSettings;
     } catch (error) {
-      throw new NotFoundException(error.message);
+      console.error("Erro ao obter configurações de notificação:", error);
+      throw new InternalServerErrorException(
+        "Erro ao obter configurações de notificação."
+      );
     }
   }
 

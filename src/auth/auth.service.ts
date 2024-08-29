@@ -57,6 +57,7 @@ export class AuthService {
     const access_token = await this.generateJwtToken(user);
     return {
       access_token,
+      user,
     };
   }
 

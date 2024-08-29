@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { ConflictException, Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { UpdateNotificationDto } from "./dto/update-notification.dto";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
@@ -114,9 +110,7 @@ export class NotificationService {
     });
 
     if (!notification) {
-      throw new NotFoundException(
-        "Configurações de notificação não encontradas."
-      );
+      return null;
     }
 
     return notification;
