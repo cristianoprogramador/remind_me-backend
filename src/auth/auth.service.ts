@@ -23,7 +23,6 @@ export class AuthService {
   async register(createUserDto: CreateUserDto): Promise<User> {
     const { email, password, name, image } = createUserDto;
 
-    // Verifica se o usuário já existe
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -31,12 +30,10 @@ export class AuthService {
       throw new UnauthorizedException("Usuário já existe");
     }
 
-    // Criptografa a senha
     const hashedPassword = password
       ? await bcrypt.hash(password, 10)
       : await bcrypt.hash("default-oauth-password", 10);
 
-    // Cria o usuário
     return this.prisma.user.create({
       data: {
         email,
@@ -53,7 +50,6 @@ export class AuthService {
   }
 
   async login(user: User) {
-    // Gere um novo token JWT no login
     const access_token = await this.generateJwtToken(user);
     return {
       access_token,
@@ -67,7 +63,6 @@ export class AuthService {
       data: { name: newName },
     });
 
-    // Gere um novo token JWT após a atualização
     return this.generateJwtToken(user);
   }
 

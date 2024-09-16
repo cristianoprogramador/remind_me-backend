@@ -26,6 +26,7 @@ model User {
   email           String    @unique @db.VarChar(255)
   password        String    @db.Text()
   profileImageUrl String?   @db.VarChar(255)
+  role            String    @default("user")
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   deletedAt       DateTime?
@@ -103,4 +104,21 @@ model RelatedUserAnnotations {
   userUuid   String?    @db.Uuid
 
   @@id([annotationId, userId])
+}
+
+model ErrorLogs {
+  uuid       String    @id @default(uuid()) @db.Uuid
+  statusCode Int       @db.Integer()
+  error      String    @db.Text()
+  message    String    @db.Text()
+  url        String    @db.Text()
+  headers    Json      @db.Json()
+  method     String    @db.VarChar(200)
+  stackTrace String?   @db.Text()
+  userId     String?   @db.Uuid()
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+
+  @@map("error_logs")
 }

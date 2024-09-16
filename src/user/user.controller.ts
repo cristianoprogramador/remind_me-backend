@@ -1,6 +1,15 @@
 // src/user/user.controller.ts
 
-import { Controller, Put, Body, Get, Param, UseGuards } from "@nestjs/common";
+import {
+  Controller,
+  Put,
+  Body,
+  Get,
+  Param,
+  UseGuards,
+  Delete,
+  Query,
+} from "@nestjs/common";
 import { UserService } from "./user.service";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import {
@@ -8,9 +17,11 @@ import {
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
+  ApiQuery,
 } from "@nestjs/swagger";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { GetUser } from "src/auth/get-user.decorator";
+import { CreateUserDto } from "src/auth/dto/create-user.dto";
 
 @ApiTags("User")
 @UseGuards(JwtAuthGuard)
@@ -32,6 +43,24 @@ export class UserController {
     return this.userService.updateUserName(user.userId, updateUserDto);
   }
 
+  @Get("list")
+  @ApiOperation({ summary: "List all users" })
+  @ApiQuery({ name: "page", required: true, type: Number, example: 1 })
+  @ApiQuery({ name: "itemsPerPage", required: true, type: Number, example: 10 })
+  @ApiQuery({ name: "search", required: false, type: String })
+  @ApiResponse({
+    status: 200,
+    description: "List of users",
+    type: [CreateUserDto],
+  })
+  findAll(
+    @Query("page") page: string,
+    @Query("itemsPerPage") itemsPerPage: string,
+    @Query("search") search?: string
+  ) {
+    return this.userService.findAll(+page, +itemsPerPage, search);
+  }
+
   @Get(":id")
   @ApiOperation({ summary: "Buscar informações do usuário" })
   @ApiResponse({
@@ -40,5 +69,15 @@ export class UserController {
   })
   async getUser(@Param("id") id: string) {
     return this.userService.getUserById(id);
+  }
+
+  @Delete(":id")
+  @ApiOperation({ summary: "Excluir usuário e todos os dados relacionados" })
+  @ApiResponse({
+    status: 200,
+    description: "Usuário excluído com sucesso.",
+  })
+  async deleteUser(@Param("id") id: string) {
+    return this.userService.deleteUser(id);
   }
 }

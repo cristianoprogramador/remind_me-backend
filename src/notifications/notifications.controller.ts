@@ -40,6 +40,7 @@ export class NotificationController {
 
       if (!notificationSettings) {
         return {
+          notificationsEmpty: true,
           emailNotify: false,
           phoneNotify: false,
           phoneNumber: "",

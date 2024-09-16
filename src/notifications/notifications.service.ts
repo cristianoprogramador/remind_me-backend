@@ -19,7 +19,7 @@ export class NotificationService {
   @Cron(CronExpression.EVERY_HOUR)
   async checkNotificationsAndSendSMS() {
     const now = new Date();
-    const nowUtc = new Date(now.toISOString()); // Horário atual em UTC
+    const nowUtc = new Date(now.toISOString());
     const currentHourUtc = nowUtc.getUTCHours();
     const currentDateUtc = nowUtc.toISOString().slice(0, 10);
 
@@ -36,12 +36,12 @@ export class NotificationService {
       },
     });
 
-    console.log(`[DEBUG] Notificações encontradas: ${notifications.length}`);
+    // console.log(`[DEBUG] Notificações encontradas: ${notifications.length}`);
 
     for (const notification of notifications) {
-      console.log(
-        `[DEBUG] Verificando notificações para o usuário: ${notification.user.name} com o ID: ${notification.userId}`
-      );
+      // console.log(
+      //   `[DEBUG] Verificando notificações para o usuário: ${notification.user.name} com o ID: ${notification.userId}`
+      // );
 
       // Converte o horário de Brasília para UTC para comparar corretamente
       const annotations = await this.prisma.annotation.findMany({
@@ -58,22 +58,22 @@ export class NotificationService {
         },
       });
 
-      console.log(
-        `[DEBUG] Anotações encontradas para enviar SMS: ${annotations.length}`
-      );
+      // console.log(
+      //   `[DEBUG] Anotações encontradas para enviar SMS: ${annotations.length}`
+      // );
 
-      for (const annotation of annotations) {
-        console.log(
-          `[DEBUG] Anotação encontrada com remindAt: ${annotation.remindAt} (horário UTC)`
-        );
-      }
+      // for (const annotation of annotations) {
+      //   console.log(
+      //     `[DEBUG] Anotação encontrada com remindAt: ${annotation.remindAt} (horário UTC)`
+      //   );
+      // }
 
       if (annotations.length > 0) {
         const annotationContents = annotations
           .map((annotation) => annotation.content)
           .join(", ");
 
-        console.log(`[DEBUG] Conteúdo das anotações: ${annotationContents}`);
+        // console.log(`[DEBUG] Conteúdo das anotações: ${annotationContents}`);
 
         await this.sendSMS(
           notification.phoneNumber,

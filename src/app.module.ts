@@ -8,6 +8,7 @@ import { CategoryModule } from "./category/category.module";
 import { UserModule } from "./user/user.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { ScheduleModule } from "@nestjs/schedule";
+import { ErrorLogsModule } from "./error-logs/error-logs.module";
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ScheduleModule } from "@nestjs/schedule";
     CategoryModule,
     UserModule,
     NotificationsModule,
+    ErrorLogsModule,
     ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
