@@ -35,6 +35,8 @@ export class UserService {
     await this.prisma.annotation.deleteMany({ where: { authorId: userId } });
     await this.prisma.notification.deleteMany({ where: { userId: userId } });
     await this.prisma.category.deleteMany({ where: { userId: userId } });
+    await this.prisma.friendship.deleteMany({ where: { user1Id: userId } });
+    await this.prisma.friendship.deleteMany({ where: { user2Id: userId } });
 
     return this.prisma.user.delete({ where: { uuid: userId } });
   }
