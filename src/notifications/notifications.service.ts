@@ -1,15 +1,21 @@
+// src\notifications\notifications.service.ts
+
 import { ConflictException, Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { UpdateNotificationDto } from "./dto/update-notification.dto";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import * as twilio from "twilio";
+import { MailService } from "src/mail/mail.service";
 
 @Injectable()
 export class NotificationService {
   private twilioClient;
 
-  constructor(private prisma: PrismaService) {
+  constructor(
+    private prisma: PrismaService,
+    private mailService: MailService
+  ) {
     this.twilioClient = twilio(
       process.env.TWILIO_ACCOUNT_SID,
       process.env.TWILIO_AUTH_TOKEN
@@ -17,7 +23,7 @@ export class NotificationService {
   }
 
   @Cron(CronExpression.EVERY_HOUR)
-  async checkNotificationsAndSendSMS() {
+  async checkNotificationsAndSendMessages() {
     const now = new Date();
     const nowUtc = new Date(now.toISOString());
     const currentHourUtc = nowUtc.getUTCHours();
@@ -25,25 +31,25 @@ export class NotificationService {
 
     const notifications = await this.prisma.notification.findMany({
       where: {
-        phoneNotify: true,
         enabled: true,
-        phoneNumber: {
-          not: null,
-        },
+        OR: [
+          { phoneNotify: true, phoneNumber: { not: null } },
+          { emailNotify: true },
+        ],
       },
       include: {
-        user: true,
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
       },
     });
 
     // console.log(`[DEBUG] Notificações encontradas: ${notifications.length}`);
 
     for (const notification of notifications) {
-      // console.log(
-      //   `[DEBUG] Verificando notificações para o usuário: ${notification.user.name} com o ID: ${notification.userId}`
-      // );
-
-      // Converte o horário de Brasília para UTC para comparar corretamente
       const annotations = await this.prisma.annotation.findMany({
         where: {
           authorId: notification.userId,
@@ -58,32 +64,26 @@ export class NotificationService {
         },
       });
 
-      // console.log(
-      //   `[DEBUG] Anotações encontradas para enviar SMS: ${annotations.length}`
-      // );
-
-      // for (const annotation of annotations) {
-      //   console.log(
-      //     `[DEBUG] Anotação encontrada com remindAt: ${annotation.remindAt} (horário UTC)`
-      //   );
-      // }
-
       if (annotations.length > 0) {
         const annotationContents = annotations
           .map((annotation) => annotation.content)
           .join(", ");
 
-        // console.log(`[DEBUG] Conteúdo das anotações: ${annotationContents}`);
+        if (notification.phoneNotify && notification.phoneNumber) {
+          await this.sendSMS(
+            notification.phoneNumber,
+            notification.user.name,
+            annotationContents
+          );
+        }
 
-        await this.sendSMS(
-          notification.phoneNumber,
-          notification.user.name,
-          annotationContents
-        );
-      } else {
-        console.log(
-          `[DEBUG] Nenhuma anotação para enviar SMS para o usuário ${notification.user.name}`
-        );
+        if (notification.emailNotify && notification.user.email) {
+          await this.mailService.sendReminderEmail(
+            notification.user.email,
+            notification.user.name,
+            annotationContents
+          );
+        }
       }
     }
   }
