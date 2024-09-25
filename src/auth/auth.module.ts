@@ -4,6 +4,8 @@ import { AuthService } from "./auth.service";
 import { AuthController } from "./auth.controller";
 import { PrismaService } from "../prisma/prisma.service";
 import { JwtStrategy } from "./jwt.strategy";
+import { MailService } from "src/mail/mail.service";
+import { ConfigModule } from "@nestjs/config";
 
 @Module({
   imports: [
@@ -11,8 +13,9 @@ import { JwtStrategy } from "./jwt.strategy";
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: "7d" },
     }),
+    ConfigModule,
   ],
-  providers: [AuthService, JwtStrategy, PrismaService],
+  providers: [AuthService, JwtStrategy, PrismaService, MailService],
   controllers: [AuthController],
   exports: [JwtStrategy],
 })

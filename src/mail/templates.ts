@@ -13,9 +13,9 @@ export const reminderTemplate = (name: string, reminders: string) => `
 `;
 
 export const recoverPasswordTemplate = (name: string, url: string) => `
-  <p>Hello, ${name}!</p>
-  <p>You requested a password reset. Click the link below to reset your password:</p>
-  <a href="${url}">Reset Password</a>
-  <p>If you did not request this reset, please ignore this email.</p>
-  <p>Thank you!</p>
+  <p>Olá, ${name}!</p>
+  <p>Você solicitou uma redefinição de senha. Clique no link abaixo para redefinir sua senha:</p>
+  <a href="${url}">Redefinir Senha</a>
+  <p>Se você não solicitou essa redefinição, por favor, ignore este e-mail.</p>
+  <p>Obrigado!</p>
 `;

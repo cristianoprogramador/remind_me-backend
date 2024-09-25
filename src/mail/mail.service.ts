@@ -24,7 +24,7 @@ export class MailService {
     const html = recoverPasswordTemplate(name, url);
     await this.mailerService.sendMail({
       to: email,
-      subject: "Password Reset Request",
+      subject: "Solicitação de Redefinição de Senha",
       html,
     });
   }
